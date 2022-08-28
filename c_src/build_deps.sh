@@ -8,9 +8,12 @@ if [ `uname -s` = 'SunOS' -a "${POSIX_SHELL}" != "true" ]; then
 fi
 unset POSIX_SHELL # clear it so if we invoke other scripts, they run as ksh as well
 
-LEVELDB_VSN="2.0.36"
+LEVELDB_URL='https://github.com/OpenRiak/leveldb.git'
+LEVELDB_EE_URL='https://github.com/OpenRiak/leveldb_ee.git'
+LEVELDB_VSN='wday-develop-3.0'
+LEVELDB_EE_VSN='wday-develop-3.0'
 
-SNAPPY_VSN="1.0.4"
+SNAPPY_VSN='1.0.4'
 
 set -e
 
@@ -56,9 +59,13 @@ case "$1" in
 
     get-deps)
         if [ ! -d leveldb ]; then
-            git clone https://github.com/basho/leveldb
-            (cd leveldb && git checkout $LEVELDB_VSN)
-            (cd leveldb && git submodule update --init)
+            git clone $LEVELDB_URL
+            cd leveldb
+            git checkout $LEVELDB_VSN
+            git clone $LEVELDB_EE_URL
+            cd leveldb_ee
+            git checkout $LEVELDB_EE_VSN
+            cd ../..
         fi
         ;;
 
@@ -73,7 +80,7 @@ case "$1" in
             export CFLAGS="$CFLAGS -stdlib=libc++"
             export CXXFLAGS="$CXXFLAGS -stdlib=libc++"
         fi
-        
+
         if [ ! -d snappy-$SNAPPY_VSN ]; then
             tar -xzf snappy-$SNAPPY_VSN.tar.gz
             (cd snappy-$SNAPPY_VSN && ./configure --disable-shared --prefix=$BASEDIR/system --libdir=$BASEDIR/system/lib --with-pic)
@@ -83,15 +90,19 @@ case "$1" in
             (cd snappy-$SNAPPY_VSN && $MAKE && $MAKE install)
         fi
 
-        
+
         export LDFLAGS="$LDFLAGS -L$BASEDIR/system/lib"
         export LD_LIBRARY_PATH="$BASEDIR/system/lib:$LD_LIBRARY_PATH"
         export LEVELDB_VSN="$LEVELDB_VSN"
 
         if [ ! -d leveldb ]; then
-            git clone https://github.com/basho/leveldb
-            (cd leveldb && git checkout $LEVELDB_VSN)
-            (cd leveldb && git submodule update --init)
+            git clone $LEVELDB_URL
+            cd leveldb
+            git checkout $LEVELDB_VSN
+            git clone $LEVELDB_EE_URL
+            cd leveldb_ee
+            git checkout $LEVELDB_EE_VSN
+            cd ../..
         fi
 
         # hack issue where high level make is running -j 4
