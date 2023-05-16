@@ -5,6 +5,7 @@
 *.eqc
 *.log
 *.S
+*.save
 *_plt
 .cache/
 .eqc

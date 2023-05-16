@@ -1,7 +1,14 @@
-.PHONY: compile rel cover test dialyzer
+.PHONY: check clean compile cover dialyzer get-deps test xref
 REBAR ?= rebar3
 
-compile:
+all: compile
+
+check: test dialyzer xref
+
+get-deps:
+	$(REBAR) get-deps
+
+compile: get-deps
 	$(REBAR) compile
 
 clean:
@@ -18,5 +25,3 @@ dialyzer:
 
 xref:
 	$(REBAR) xref
-
-check: test dialyzer xref
