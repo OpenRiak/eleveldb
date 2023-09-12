@@ -64,5 +64,6 @@ tmp/
 /c_src/leveldb/
 /c_src/snappy*/
 /c_src/system/
+/doc/
 /priv/
 !/priv/*.schema

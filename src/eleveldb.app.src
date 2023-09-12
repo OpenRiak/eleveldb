@@ -1,26 +1,22 @@
-{application, eleveldb,
- [
-  {description, "Erlang wrapper to Basho-modified leveldb store"},
-  {vsn, git},
-  {registered, []},
-  {applications, [
-                  kernel,
-                  stdlib
-                 ]},
-  {env, [
-         %% what percent of total memory should go to
-         %%  leveldb.  Default is 15% on the basis of
-         %%  a single development machine running 5
-         %%  Riak instances would therefore claim 75%.
-         %% REAL users will want this at 70%.
-         {total_leveldb_mem_percent, 15},
+{application, eleveldb, [
+    {description, "Erlang wrapper to Basho-modified leveldb store"},
+    {vsn, "3.0.15.1"},
+    {registered, []},
+    {applications, [kernel, stdlib]},
+    {env, [
+        %% what percent of total memory should go to
+        %%  leveldb.  Default is 15% on the basis of
+        %%  a single development machine running 5
+        %%  Riak instances would therefore claim 75%.
+        %% REAL users will want this at 70%.
+        {total_leveldb_mem_percent, 15},
 
-         %% Use bloom filter support by default
-         {use_bloomfilter, true},
+        %% Use bloom filter support by default
+        {use_bloomfilter, true},
 
-         %% Users with "older" configs should get
-         %%  "older" compression by default
-         {compression, snappy}
+        %% Users with "older" configs should get
+        %%  "older" compression by default
+        {compression, snappy}
 
-        ]}
- ]}.
+    ]}
+]}.

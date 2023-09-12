@@ -1,15 +1,12 @@
 # `eleveldb` - Erlang bindings to LevelDB datastore 
 
-[![Build Status](https://secure.travis-ci.org/basho/eleveldb.png?branch=master)](http://travis-ci.org/basho/eleveldb)
+[![Erlang CI Actions Status](https://github.com/basho/eleveldb/workflows/Erlang%20CI/badge.svg)](https://github.com/basho/eleveldb/actions)
 
-This repository follows the Basho standard for branch management 
-as of November 28, 2013.  The standard is found here:
+This project provides erlang bindings to a LevelDB datastore heavily optimised for [Riak workloads](https://github.com/basho/riak).  See the [Basho leveldb wiki](https://github.com/basho/leveldb/wiki) for a breakdown of the optimisations.
 
-https://github.com/basho/riak/wiki/Basho-repository-management
+No further work on optimising the underlying store is currently being undertaken, only minimal fixes necessary for platform compatability.  
 
-In summary, the "develop" branch contains the most recently reviewed
-engineering work.  The "master" branch contains the most recently
-released work, i.e. distributed as part of a Riak release.
+As an alternative, elrang bindings to RocksDB can be found as part of the [BarrellDB](https://gitlab.com/barrel-db/erlang-rocksdb) project.  For Riak-like workloads, especially with large objects, the pure-Erlang [Leveled store](https://github.com/martinsumner/leveled) is also available. 
 
 # Iterating Records
 
@@ -29,7 +26,7 @@ For those who need more control over the process of iterating over records, you 
 
 - **prev:** Move backward one position and return the value; do nothing else.
 
-### prefetc/prefetch_stop
+### prefetch/prefetch_stop
 
 - **prefetch:** Perform a `next` action and then start a parallel call for the subsequent `next` while Erlang processes the current `next`. The subsequent `prefetch` may return immediately with the value already retrieved.
 

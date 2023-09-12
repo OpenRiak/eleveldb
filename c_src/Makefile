@@ -42,13 +42,22 @@
 # up only what we need. It remains to be seen how much of that should be done
 # here and how much should be in external build scripts.
 #
-
-# Where the sub-repos come from should all be overridden on the command line or
-# in exported environment variables, either globally or per-repo.
+BASEDIR := $(shell pwd)
+#
+# Where the sub-repos come from should be overridden by one of the following:
+# - on the command line
+# - in exported environment variables
+# - in the file 'Subrepo.mk' in this repo's root
+# Overrides can be global, per-repo, or a combination of the two.
+#
+SUBREPO_SPECS := $(abspath $(BASEDIR)/..)/Subrepo.mk
+ifneq ($(wildcard $(SUBREPO_SPECS)),)
+include $(SUBREPO_SPECS)
+endif
 # The defaults here WILL NOT work, they're just placeholders.
 DFLT_REPO_PROJECT ?= https://github.com/basho
-DFLT_REPO_BRANCH  ?= develop-3.0
-# Per-repo overrides
+DFLT_REPO_BRANCH  ?= develop
+# Per-repo overrides.
 LEVELDB_PROJECT ?= $(DFLT_REPO_PROJECT)
 LEVELDB_BRANCH  ?= $(DFLT_REPO_BRANCH)
 LDB_EE_PROJECT  ?= $(DFLT_REPO_PROJECT)
@@ -60,7 +69,6 @@ LEVELDB_CLONE_ARGS  ?= --single-branch --branch $(LEVELDB_BRANCH)
 LDB_EE_CLONE_ARGS   ?= --single-branch --branch $(LDB_EE_BRANCH)
 SNAPPY_CLONE_ARGS   ?= --single-branch --branch $(SNAPPY_BRANCH)
 
-BASEDIR := $(shell pwd)
 PRIVDIR := $(abspath $(BASEDIR)/..)/priv
 
 TOOLS := leveldb_repair perf_dump sst_rewrite sst_scan
@@ -69,9 +77,12 @@ TGT_TOOLS := $(patsubst %,$(PRIVDIR)/%,$(TOOLS))
 TARGETS := $(BASEDIR)/leveldb/libleveldb.a \
 	$(BASEDIR)/system/lib/libsnappy.a $(TGT_TOOLS)
 
-# snappy requires cmake v3 - default on current Macs, but may have a suffix
-# when installed as a package on other platforms.
-CMAKE := $(shell command -v cmake3 2>/dev/null || command -v cmake)
+# snappy requires cmake v3 - the default (when installed) on newer OSes,
+# but may have a suffix on older ones.
+# Since it's an add-on on most platforms make sure the value doesn't wind
+# up blank, so there's a meaningful error message if it's not installed.
+CMAKE := $(shell command -v cmake3 2>/dev/null || \
+	command -v cmake 2>/dev/null || echo cmake)
 CPX := /bin/cp -p
 
 LDFLAGS := $(LDFLAGS) -L$(BASEDIR)/system/lib
@@ -85,15 +96,15 @@ ifeq ($(shell uname -s),Darwin)
 	TEST_CXXFLAGS += -Wno-c++11-narrowing
 endif
 
-.PHONY: clean compile get-deps test
+.PHONY: clean compile distclean get-deps test
 
 compile: $(TARGETS)
 
 get-deps: $(BASEDIR)/leveldb $(BASEDIR)/snappy
 
 $(BASEDIR)/leveldb:
-	git clone $(LEVELDB_CLONE_ARGS) $(LDB_EE_PROJECT)/leveldb.git $@
-	git clone $(LDB_EE_CLONE_ARGS) $(SUB_REPO_PROJECT)/leveldb_ee.git $@/leveldb_ee
+	git clone $(LEVELDB_CLONE_ARGS) $(DFLT_REPO_PROJECT)/leveldb.git $@
+	git clone $(LDB_EE_CLONE_ARGS) $(LDB_EE_PROJECT)/leveldb_ee.git $@/leveldb_ee
 
 $(BASEDIR)/snappy:
 	git clone $(SNAPPY_CLONE_ARGS) $(SNAPPY_PROJECT)/snappy.git $@
@@ -104,7 +115,7 @@ $(BASEDIR)/snappy:
 $(BASEDIR)/leveldb/libleveldb.a: $(BASEDIR)/leveldb $(BASEDIR)/system/lib/libsnappy.a
 	LEVELDB_VSN=$(shell git --git-dir=$(BASEDIR)/leveldb/.git \
 		describe --tags | grep -Eo '^[0-9\.]+' \
-	) $(MAKE) LDFLAGS="$(LDFLAGS) -lsnappy" -C $(BASEDIR)/leveldb all
+	) $(MAKE) LDFLAGS="$(LDFLAGS) -lsnappy -lpthread" -C $(BASEDIR)/leveldb all
 
 $(TGT_TOOLS) &: $(BASEDIR)/leveldb/libleveldb.a
 	$(MAKE) LDFLAGS="$(LDFLAGS) -lsnappy -lpthread" -C $(BASEDIR)/leveldb tools
@@ -123,7 +134,10 @@ $(BASEDIR)/system/lib/libsnappy.a: $(BASEDIR)/snappy
 
 clean:
 	$(MAKE) -C $(BASEDIR)/leveldb clean
-	/bin/rm -rf system
+	/bin/rm -rf $(BASEDIR)/system
+
+distclean:
+	/bin/rm -rf $(BASEDIR)/leveldb $(BASEDIR)/snappy $(BASEDIR)/system $(TARGETS)
 
 test: compile
 	$(MAKE) CXXFLAGS="$(TEST_CXXFLAGS)" \

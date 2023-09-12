@@ -18,7 +18,7 @@ cover: test
 	$(REBAR) cover
 
 test: compile
-	$(REBAR) as test do eunit
+	$(REBAR) eunit
 
 dialyzer:
 	$(REBAR) dialyzer
