@@ -1,7 +1,7 @@
 # -------------------------------------------------------------------
 #
 # Copyright (c) 2012-2017 Basho Technologies, Inc.
-# Copyright (c) 2017-2023 Workday, Inc.
+# Copyright (c) 2017-2024 Workday, Inc.
 #
 # This file is provided to you under the Apache License,
 # Version 2.0 (the "License"); you may not use this file
@@ -54,9 +54,9 @@ SUBREPO_SPECS := $(abspath $(BASEDIR)/..)/Subrepo.mk
 ifneq ($(wildcard $(SUBREPO_SPECS)),)
 include $(SUBREPO_SPECS)
 endif
-# The defaults here WILL NOT work, they're just placeholders.
-DFLT_REPO_PROJECT ?= https://github.com/basho
-DFLT_REPO_BRANCH  ?= develop
+# Defaults for all sub-repos.
+DFLT_REPO_PROJECT ?= https://github.com/OpenRiak
+DFLT_REPO_BRANCH  ?= openriak-3.2
 # Per-repo overrides.
 LEVELDB_PROJECT ?= $(DFLT_REPO_PROJECT)
 LEVELDB_BRANCH  ?= $(DFLT_REPO_BRANCH)
@@ -77,12 +77,13 @@ TGT_TOOLS := $(patsubst %,$(PRIVDIR)/%,$(TOOLS))
 TARGETS := $(BASEDIR)/leveldb/libleveldb.a \
 	$(BASEDIR)/system/lib/libsnappy.a $(TGT_TOOLS)
 
-# snappy requires cmake v3 - the default (when installed) on newer OSes,
+# snappy requires cmake v3+ - the default (when installed) on newer OSes,
 # but may have a suffix on older ones.
 # Since it's an add-on on most platforms make sure the value doesn't wind
 # up blank, so there's a meaningful error message if it's not installed.
 CMAKE := $(shell command -v cmake3 2>/dev/null || \
 	command -v cmake 2>/dev/null || echo cmake)
+# Copy with timestamps, without EAs, overridden per-OS
 CPX := /bin/cp -p
 
 LDFLAGS := $(LDFLAGS) -L$(BASEDIR)/system/lib
@@ -92,7 +93,7 @@ TEST_CXXFLAGS := $(CXXFLAGS) -Wno-narrowing
 
 ifeq ($(shell uname -s),Darwin)
 	CPX := /bin/cp -pX
-	# Resolves C++11 narrowing error on Mac OS
+	# Resolves C++11 narrowing error on macOS
 	TEST_CXXFLAGS += -Wno-c++11-narrowing
 endif
 

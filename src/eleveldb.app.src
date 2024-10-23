@@ -1,8 +1,8 @@
 {application, eleveldb, [
     {description, "Erlang wrapper to Basho-modified leveldb store"},
-    {vsn, "3.0.15.1"},
+    {vsn, "3.2.0.1"},
     {registered, []},
-    {applications, [kernel, stdlib]},
+    {applications, [kernel, stdlib, os_mon]},
     {env, [
         %% what percent of total memory should go to
         %%  leveldb.  Default is 15% on the basis of

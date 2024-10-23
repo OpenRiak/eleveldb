@@ -1,12 +1,21 @@
 # `eleveldb` - Erlang bindings to LevelDB datastore 
 
-[![Erlang CI Actions Status](https://github.com/basho/eleveldb/workflows/Erlang%20CI/badge.svg)](https://github.com/basho/eleveldb/actions)
+[![Build Status](https://github.com/OpenRiak/eleveldb/actions/workflows/erlang.yml/badge.svg)](https://github.com/OpenRiak/eleveldb/actions/workflows/erlang.yml)
 
-This project provides erlang bindings to a LevelDB datastore heavily optimised for [Riak workloads](https://github.com/basho/riak).  See the [Basho leveldb wiki](https://github.com/basho/leveldb/wiki) for a breakdown of the optimisations.
+This project provides Erlang bindings to a LevelDB datastore heavily optimised for [Riak workloads](https://github.com/OpenRiak/riak).
+See the [Riak LevelDB wiki](https://github.com/OpenRiak/leveldb/wiki) for a breakdown of the optimisations.
 
-No further work on optimising the underlying store is currently being undertaken, only minimal fixes necessary for platform compatability.  
+## Future Development
 
-As an alternative, elrang bindings to RocksDB can be found as part of the [BarrellDB](https://gitlab.com/barrel-db/erlang-rocksdb) project.  For Riak-like workloads, especially with large objects, the pure-Erlang [Leveled store](https://github.com/martinsumner/leveled) is also available. 
+No further work on optimising the underlying store is currently being undertaken, only minimal fixes necessary for platform compatibility.
+
+At present, this backend is slated for deprecation in [OpenRiak](https://github.com/OpenRiak) 3.4 and removal in a subsequent release.
+Should a maintainer commit to ongoing support that strategy will be revisited.
+
+### Alternatives
+
+* For Riak-like workloads, especially with large objects, the pure-Erlang [LevelEd store](https://github.com/martinsumner/leveled) is recommended.
+* Erlang bindings to RocksDB can be found as part of the [BarrellDB](https://gitlab.com/barrel-db/erlang-rocksdb) project.
 
 # Iterating Records
 
