@@ -34,3 +34,5 @@ jobs:
         run: ./rebar3 do xref, dialyzer
       - name: Run eunit
         run: ./rebar3 as gha do eunit
+      - name: Run broader tests
+        run: make test
