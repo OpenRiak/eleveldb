@@ -126,6 +126,7 @@ $(BASEDIR)/system/lib/libsnappy.a: $(BASEDIR)/snappy
 	/bin/mkdir -p $(BASEDIR)/snappy/build $(BASEDIR)/system
 	( cd $(BASEDIR)/snappy/build && \
 		$(CMAKE) -D SNAPPY_BUILD_TESTS=0 -D SNAPPY_BUILD_BENCHMARKS=0 \
+		-D CMAKE_POLICY_VERSION_MINIMUM=3.5 \
 		-D CMAKE_INSTALL_PREFIX=$(BASEDIR)/system .. && \
 		$(MAKE) && \
 		$(MAKE) install )
