@@ -36,6 +36,7 @@ system/lib/libsnappy.a:
 	   mkdir build && cd build && \
 	   mkdir -p $(BASEDIR)/system && \
 	   cmake -D SNAPPY_BUILD_TESTS=0 -D SNAPPY_BUILD_BENCHMARKS=0 \
+	         -D CMAKE_POLICY_VERSION_MINIMUM=3.5 \
 	         -D CMAKE_INSTALL_PREFIX=$(BASEDIR)/system \
 	     ..; \
 	  fi && \
