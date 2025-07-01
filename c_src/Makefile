@@ -1,7 +1,7 @@
 # -------------------------------------------------------------------
 #
 # Copyright (c) 2012-2017 Basho Technologies, Inc.
-# Copyright (c) 2017-2024 Workday, Inc.
+# Copyright (c) 2017-2025 Workday, Inc.
 #
 # This file is provided to you under the Apache License,
 # Version 2.0 (the "License"); you may not use this file
@@ -54,6 +54,9 @@ SUBREPO_SPECS := $(abspath $(BASEDIR)/..)/Subrepo.mk
 ifneq ($(wildcard $(SUBREPO_SPECS)),)
 include $(SUBREPO_SPECS)
 endif
+# Defaults for all overrideable sub-repo sources follow.
+# Do NOT change them here, see above to override.
+
 # Defaults for all sub-repos.
 DFLT_REPO_PROJECT ?= https://github.com/OpenRiak
 DFLT_REPO_BRANCH  ?= openriak-3.2
@@ -85,6 +88,9 @@ CMAKE := $(shell command -v cmake3 2>/dev/null || \
 	command -v cmake 2>/dev/null || echo cmake)
 # Copy with timestamps, without EAs, overridden per-OS
 CPX := /bin/cp -p
+# We want the full path shown in the output, or a meaningful error message
+# if it's not installed.
+GIT := $(shell command -v git 2>/dev/null || echo git)
 
 LDFLAGS := $(LDFLAGS) -L$(BASEDIR)/system/lib
 CFLAGS := $(CFLAGS) -I $(BASEDIR)/system/include -I. -I $(BASEDIR)/leveldb/include -fPIC
@@ -104,17 +110,17 @@ compile: $(TARGETS)
 get-deps: $(BASEDIR)/leveldb $(BASEDIR)/snappy
 
 $(BASEDIR)/leveldb:
-	git clone $(LEVELDB_CLONE_ARGS) $(DFLT_REPO_PROJECT)/leveldb.git $@
-	git clone $(LDB_EE_CLONE_ARGS) $(LDB_EE_PROJECT)/leveldb_ee.git $@/leveldb_ee
+	$(GIT) clone $(LEVELDB_CLONE_ARGS) $(DFLT_REPO_PROJECT)/leveldb.git $@
+	$(GIT) clone $(LDB_EE_CLONE_ARGS) $(LDB_EE_PROJECT)/leveldb_ee.git $@/leveldb_ee
 
 $(BASEDIR)/snappy:
-	git clone $(SNAPPY_CLONE_ARGS) $(SNAPPY_PROJECT)/snappy.git $@
+	$(GIT) clone $(SNAPPY_CLONE_ARGS) $(SNAPPY_PROJECT)/snappy.git $@
 
 # This gets built after the repo's cloned but before tools, so get the version
 # set up - the leveldb makefile will re-use the config script once it's created
 # here, so no need to do it again later.
 $(BASEDIR)/leveldb/libleveldb.a: $(BASEDIR)/leveldb $(BASEDIR)/system/lib/libsnappy.a
-	LEVELDB_VSN=$(shell git --git-dir=$(BASEDIR)/leveldb/.git \
+	LEVELDB_VSN=$(shell $(GIT) --git-dir=$(BASEDIR)/leveldb/.git \
 		describe --tags | grep -Eo '^[0-9\.]+' \
 	) $(MAKE) LDFLAGS="$(LDFLAGS) -lsnappy -lpthread" -C $(BASEDIR)/leveldb all
 
@@ -139,7 +145,8 @@ clean:
 	/bin/rm -rf $(BASEDIR)/system
 
 distclean:
-	/bin/rm -rf $(BASEDIR)/leveldb $(BASEDIR)/snappy $(BASEDIR)/system $(TARGETS)
+	/bin/rm -rf $(TGT_TOOLS) \
+		$(BASEDIR)/leveldb $(BASEDIR)/snappy $(BASEDIR)/system
 
 test: compile
 	$(MAKE) CXXFLAGS="$(TEST_CXXFLAGS)" \
