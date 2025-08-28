@@ -1,4 +1,4 @@
-export LEVELDB_VSN ?= "openriak-3.2"
+export LEVELDB_VSN ?= "nhse-o32-oreldb.i6-preo32"
 SNAPPY_VSN ?= "1.1.9"
 BASEDIR = $(shell pwd)
 
