@@ -92,9 +92,11 @@ CPX := /bin/cp -p
 # if it's not installed.
 GIT := $(shell command -v git 2>/dev/null || echo git)
 
-LDFLAGS := $(LDFLAGS) -L$(BASEDIR)/system/lib
-CFLAGS := $(CFLAGS) -I $(BASEDIR)/system/include -I. -I $(BASEDIR)/leveldb/include -fPIC
-CXXFLAGS := $(CXXFLAGS) -I $(BASEDIR)/system/include -I. -I $(BASEDIR)/leveldb/include -fPIC
+# Flags in addition to those the LevelDB build will figure out for itself.
+# These are just to let it find and use Snappy.
+CFLAGS += -I$(BASEDIR)/system/include
+CXXFLAGS += -I$(BASEDIR)/system/include
+LDFLAGS += -L$(BASEDIR)/system/lib
 TEST_CXXFLAGS := $(CXXFLAGS) -Wno-narrowing
 
 ifeq ($(shell uname -s),Darwin)
@@ -119,29 +121,36 @@ $(BASEDIR)/snappy:
 # This gets built after the repo's cloned but before tools, so get the version
 # set up - the leveldb makefile will re-use the config script once it's created
 # here, so no need to do it again later.
+# Flags need to be in the shell environment, not just on the $(MAKE) command line,
+# so that leveldb/build_detect_platform picks them up.
 $(BASEDIR)/leveldb/libleveldb.a: $(BASEDIR)/leveldb $(BASEDIR)/system/lib/libsnappy.a
 	LEVELDB_VSN=$(shell $(GIT) --git-dir=$(BASEDIR)/leveldb/.git \
-		describe --tags | grep -Eo '^[0-9\.]+' \
-	) $(MAKE) LDFLAGS="$(LDFLAGS) -lsnappy -lpthread" -C $(BASEDIR)/leveldb all
+		describe --tags | grep -Eo '^[0-9\.]+' ) \
+	CFLAGS="$(CFLAGS)" CXXFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
+	$(MAKE) -C $(BASEDIR)/leveldb all
 
 $(TGT_TOOLS) &: $(BASEDIR)/leveldb/libleveldb.a
-	$(MAKE) LDFLAGS="$(LDFLAGS) -lsnappy -lpthread" -C $(BASEDIR)/leveldb tools
+	CFLAGS="$(CFLAGS)" CXXFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
+	$(MAKE) -C $(BASEDIR)/leveldb tools
 	$(CPX) $(LDB_TOOLS) $(PRIVDIR)
 
 $(BASEDIR)/system/lib/libsnappy.a: $(BASEDIR)/snappy
 	/bin/mkdir -p $(BASEDIR)/snappy/build $(BASEDIR)/system
-	( cd $(BASEDIR)/snappy/build && \
-		$(CMAKE) -D SNAPPY_BUILD_TESTS=0 -D SNAPPY_BUILD_BENCHMARKS=0 \
-		-D CMAKE_POLICY_VERSION_MINIMUM=3.5 \
-		-D CMAKE_INSTALL_PREFIX=$(BASEDIR)/system .. && \
-		$(MAKE) && \
-		$(MAKE) install )
+	$(CMAKE) \
+		-S $(BASEDIR)/snappy \
+		-B $(BASEDIR)/snappy/build \
+		--install-prefix $(BASEDIR)/system \
+		-D CMAKE_CXX_FLAGS='-fPIC -O3' \
+		-D SNAPPY_BUILD_TESTS=0 -D SNAPPY_BUILD_BENCHMARKS=0 \
+		-D CMAKE_POLICY_VERSION_MINIMUM=3.5
+	VERBOSE=1 $(MAKE) -C $(BASEDIR)/snappy/build
+	VERBOSE=1 $(MAKE) -C $(BASEDIR)/snappy/build install
 	/bin/test -d $(BASEDIR)/system/lib || \
-		/bin/mv $(BASEDIR)/system/lib64 $(BASEDIR)/system/lib
-	/bin/rm -rf $(BASEDIR)/snappy/build $(BASEDIR)/system/lib/cmake
+		/bin/ln -s lib64 $(BASEDIR)/system/lib
 
 clean:
 	$(MAKE) -C $(BASEDIR)/leveldb clean
+	$(MAKE) -C $(BASEDIR)/snappy/build clean
 	/bin/rm -rf $(BASEDIR)/system
 
 distclean:
@@ -149,5 +158,5 @@ distclean:
 		$(BASEDIR)/leveldb $(BASEDIR)/snappy $(BASEDIR)/system
 
 test: compile
-	$(MAKE) CXXFLAGS="$(TEST_CXXFLAGS)" \
-		LDFLAGS="$(LDFLAGS) -lsnappy -lpthread" -C $(BASEDIR)/leveldb test
+	CFLAGS="$(CFLAGS)" CXXFLAGS="$(TEST_CXXFLAGS)" LDFLAGS="$(LDFLAGS)" \
+	$(MAKE) -C $(BASEDIR)/leveldb test
