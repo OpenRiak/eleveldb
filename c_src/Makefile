@@ -59,7 +59,7 @@ endif
 
 # Defaults for all sub-repos.
 DFLT_REPO_PROJECT ?= https://github.com/OpenRiak
-DFLT_REPO_BRANCH  ?= openriak-3.2
+DFLT_REPO_BRANCH  ?= openriak-3.4
 # Per-repo overrides.
 LEVELDB_PROJECT ?= $(DFLT_REPO_PROJECT)
 LEVELDB_BRANCH  ?= $(DFLT_REPO_BRANCH)
